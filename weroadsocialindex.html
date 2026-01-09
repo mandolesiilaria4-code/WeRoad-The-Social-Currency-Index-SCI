@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeRoad PR Deck: The Social Currency Index</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'weroad-bg': '#FDFBF7',
+                        'weroad-dark': '#1F1F1F',
+                        'weroad-burgundy': '#8B1E3F',
+                        'social-green': '#065F46',
+                        'social-gold': '#D97706',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 500px;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .ticker-content {
+            display: inline-block;
+            /* Adjusted speed from 60s to 40s for better visibility */
+            animation: ticker 40s linear infinite; 
+        }
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            background-color: #1F1F1F;
+            color: #fff;
+            padding: 8px 0;
+            white-space: nowrap;
+        }
+        .ticker-item {
+            display: inline-block;
+            padding: 0 2rem;
+            font-family: monospace;
+        }
+
+        @keyframes stamp-bounce {
+            0% { transform: scale(3); opacity: 0; }
+            50% { transform: scale(0.9); opacity: 1; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1) rotate(-10deg); }
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .loading-animation::after {
+            content: '';
+            animation: dot-animation 1s infinite steps(3, start);
+        }
+        @keyframes dot-animation {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+    </style>
+</head>
+<body class="bg-weroad-bg text-weroad-dark font-sans leading-relaxed overflow-x-hidden">
+
+    <!-- Header / Ticker -->
+    <div class="fixed top-0 w-full z-50">
+        <div class="ticker-wrap">
+            <div class="ticker-content" id="social-ticker">
+            </div>
+        </div>
+        <nav class="bg-white/95 backdrop-blur shadow-sm border-b border-stone-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex-shrink-0 flex items-center gap-2">
+                        <div class="w-8 h-8 bg-weroad-burgundy rounded-full flex items-center justify-center text-white font-bold">W</div>
+                        <span class="font-bold text-xl tracking-tight text-weroad-burgundy">WeRoad <span class="text-stone-400 font-normal">| Media Centre</span></span>
+                    </div>
+                    <div class="hidden md:flex space-x-8">
+                        <a href="#index" class="text-stone-600 hover:text-weroad-burgundy px-3 py-2 text-sm font-medium">The Index</a>
+                        <a href="#report" class="text-stone-600 hover:text-weroad-burgundy px-3 py-2 text-sm font-medium">✨ Generate Report</a>
+                        <a href="#ledger" class="text-stone-600 hover:text-weroad-burgundy px-3 py-2 text-sm font-medium">The Ledger</a>
+                    </div>
+                    <div>
+                        <a href="#contact" class="bg-weroad-burgundy text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-900 transition-colors">Request Press Kit</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="pt-32 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+        <span class="inline-block py-1 px-3 rounded-full bg-red-100 text-weroad-burgundy text-xs font-bold tracking-wider uppercase mb-4">New Campaign Launch</span>
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-stone-900 mb-6">
+            Is Your City <span class="text-weroad-burgundy underline decoration-4 decoration-social-gold">Socially Bankrupt?</span>
+        </h1>
+        <p class="mt-4 max-w-2xl mx-auto text-xl text-stone-600">
+            WeRoad launches <strong>The Social Currency Index (SCI)</strong>, reframing real-life human connection as a quantifiable, tradable asset.
+        </p>
+        <div class="mt-8 flex justify-center gap-4">
+            <button onclick="document.getElementById('index').scrollIntoView({behavior: 'smooth'})" class="bg-stone-900 text-white px-8 py-3 rounded-lg font-medium hover:bg-stone-700 transition shadow-lg">
+                View the Data
+            </button>
+            <button onclick="document.getElementById('report').scrollIntoView({behavior: 'smooth'})" class="bg-social-gold text-stone-900 border border-social-gold/50 px-8 py-3 rounded-lg font-medium hover:bg-yellow-600 transition shadow-sm">
+                ✨ Live City Analysis
+            </button>
+        </div>
+    </header>
+
+    <!-- The Narrative: Problem vs Solution -->
+    <section id="problem" class="py-16 bg-white border-y border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-900">The New Asset Class</h2>
+                <p class="mt-4 text-stone-600 max-w-3xl mx-auto">
+                    WeRoad provides the digital infrastructure to combat the crisis of urban social isolation by treating connection as an actively managed asset.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-stretch">
+                <!-- The Problem Card -->
+                <div class="bg-stone-50 p-8 rounded-xl border border-stone-200 card-hover">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-3 bg-red-100 text-red-600 rounded-lg"><i class="fa-solid fa-arrow-trend-down text-xl"></i></div>
+                        <h3 class="text-2xl font-bold text-stone-800">The Problem: Social Poverty</h3>
+                    </div>
+                    <p class="text-stone-600 mb-6">
+                        Millennials are experiencing 'Social Poverty'—rich in digital contacts but poor in deep, meaningful connections.
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-xmark text-red-500 mt-1"></i>
+                            <span class="text-stone-700"><strong>Urban Isolation:</strong> Crowded cities, solitary lives.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-xmark text-red-500 mt-1"></i>
+                            <span class="text-stone-700"><strong>Digital Inflation:</strong> Low yield on social media 'investments'.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- The Solution Card -->
+                <div class="bg-emerald-50 p-8 rounded-xl border border-emerald-100 card-hover relative overflow-hidden">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-3 bg-emerald-100 text-emerald-700 rounded-lg"><i class="fa-solid fa-coins text-xl"></i></div>
+                        <h3 class="text-2xl font-bold text-emerald-900">The Solution: Social Currency</h3>
+                    </div>
+                    <p class="text-emerald-800 mb-6">
+                        Genuine connection is a high-yield investment, earned via the Digital Ledger on the WeMeet app.
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check text-emerald-600 mt-1"></i>
+                            <span class="text-emerald-900"><strong>Digital Ledger:</strong> Tracks SCUs earned from WeMeet and WeRoad activities.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check text-emerald-600 mt-1"></i>
+                            <span class="text-emerald-900"><strong>SCU Rewards:</strong> Converts connection into status and discounts.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Hard News: Social Currency Index -->
+    <section id="index" class="py-16 bg-stone-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10 text-center md:text-left md:flex md:justify-between md:items-end">
+                <div class="max-w-2xl">
+                    <h2 class="text-3xl font-bold text-stone-900">The Social Currency Index (SCI)</h2>
+                    <p class="mt-4 text-stone-600">
+                        The core data release—a proprietary ranking of European cities by "Social Wealth" score.
+                        <em>Use the toggle to switch between the overall Wealth Score and the critical "Connection Lag."</em>
+                    </p>
+                </div>
+                <div class="mt-6 md:mt-0 flex bg-white rounded-lg shadow-sm p-1 border border-stone-200">
+                    <button onclick="updateChart('wealth')" id="btn-wealth" class="px-4 py-2 rounded-md text-sm font-medium transition-all bg-weroad-burgundy text-white shadow-sm">Social Wealth Score</button>
+                    <button onclick="updateChart('lag')" id="btn-lag" class="px-4 py-2 rounded-md text-sm font-medium text-stone-500 hover:text-stone-900 transition-all">Connection Lag (Weeks)</button>
+                </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-stone-200">
+                <div class="chart-container">
+                    <canvas id="sciChart"></canvas>
+                </div>
+                <div id="chart-insight" class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-stone-700 text-sm">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LLM Feature 1: Social Wealth Status Report Generator -->
+    <section id="report" class="py-16 bg-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-stone-50 rounded-2xl p-8 border border-stone-200">
+                <h2 class="text-3xl font-bold text-stone-900 mb-2 flex items-center justify-center gap-3">
+                    ✨ Generate a Live Social Wealth Status Report
+                </h2>
+                <p class="text-stone-600 mb-6 text-center">
+                    Query any European city to receive a mock SCI status report, grounded in real-time web information.
+                </p>
+                
+                <div class="flex flex-col md:flex-row gap-4 mb-6">
+                    <input type="text" id="city-input" placeholder="Enter city (e.g., Paris, Barcelona, Oslo)" class="flex-grow p-3 border border-stone-300 rounded-lg focus:ring-weroad-burgundy focus:border-weroad-burgundy" />
+                    <button onclick="generateReport()" id="report-button" class="bg-social-gold text-stone-900 px-6 py-3 rounded-lg font-bold hover:bg-yellow-600 transition-colors flex-shrink-0">
+                        Analyse City
+                    </button>
+                </div>
+
+                <div id="report-result" class="min-h-16 p-4 border border-stone-300 rounded-lg bg-white hidden">
+                    <p class="font-semibold text-stone-700 mb-2">Report:</p>
+                    <div id="report-text" class="text-stone-800"></div>
+                    <div id="report-sources" class="mt-4 pt-2 border-t border-stone-100 text-xs text-stone-500"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Product: Digital Ledger Interactive -->
+    <section id="ledger" class="py-16 bg-stone-50 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-900">The Digital Ledger</h2>
+                <p class="mt-2 text-stone-600">Track your Social Currency Units (SCU) from global adventures to local meetups.</p>
+                <p class="text-sm text-weroad-burgundy font-semibold uppercase tracking-widest mt-2">Interactive Demo</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Left Column: Wallet -->
+                <div class="lg:col-span-1 space-y-8">
+                    <!-- User Profile / Wallet -->
+                    <div class="bg-gradient-to-br from-stone-900 to-stone-800 text-white rounded-2xl p-6 shadow-2xl relative">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <p class="text-stone-400 text-xs uppercase tracking-wider">Account Holder</p>
+                                <h3 class="text-xl font-bold">The Urban Explorer</h3>
+                                <p class="text-xs text-stone-500">ID: WEM-365-2025</p>
+                            </div>
+                            <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                                <i class="fa-solid fa-wallet text-social-gold"></i>
+                            </div>
+                        </div>
+
+                        <div class="mb-8 text-center">
+                            <p class="text-stone-400 text-sm mb-1">Total Social Wealth</p>
+                            <div class="text-5xl font-mono font-bold text-social-gold" id="scu-display">0</div>
+                            <p class="text-xs text-stone-400 mt-1">SCU (Social Currency Units)</p>
+                        </div>
+
+                        <div class="border-t border-white/10 pt-4">
+                            <p class="text-xs text-stone-400 mb-2">Current Tier</p>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-medal text-stone-500" id="tier-icon"></i>
+                                <span class="font-bold text-lg" id="tier-name">Social Apprentice</span>
+                            </div>
+                            <div class="w-full bg-stone-700 h-2 rounded-full mt-2">
+                                <div id="progress-bar" class="bg-social-gold h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <p class="text-xs text-stone-500 mt-2" id="next-tier-text">200 SCU to next tier</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Transaction List (The Game) -->
+                <div class="lg:col-span-1 space-y-4">
+                    <p class="text-stone-500 text-sm font-medium mb-2 uppercase">Available Transactions (Click to Complete)</p>
+                    
+                    <!-- Mission 1: Travel -->
+                    <div data-mission-id="expeditions" onclick="completeTransaction(this, 'expeditions')" class="mission-card bg-white border border-stone-200 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 transition-all group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-plane-departure"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-stone-800">The Expeditions Portfolio</h4>
+                                <p class="text-sm text-stone-500">Travelled with 5+ strangers in a foreign country.</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="block font-mono font-bold text-emerald-600" data-reward="150">+150 SCU</span>
+                            <span class="text-xs text-stone-400 status-text">Pending</span>
+                        </div>
+                    </div>
+
+                    <!-- Mission 2: Environment -->
+                    <div data-mission-id="environment" onclick="completeTransaction(this, 'environment')" class="mission-card bg-white border border-stone-200 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 transition-all group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl group-hover:bg-green-600 group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-tree"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-stone-800">The Environment Fund</h4>
+                                <p class="text-sm text-stone-500">Diversified connection: Urban, Nature, & Party events.</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="block font-mono font-bold text-emerald-600" data-reward="100">+100 SCU</span>
+                            <span class="text-xs text-stone-400 status-text">Pending</span>
+                        </div>
+                    </div>
+
+                    <!-- Mission 3: Local Local -->
+                    <div data-mission-id="trust" onclick="completeTransaction(this, 'trust')" class="mission-card bg-white border border-stone-200 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 transition-all group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-handshake"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-stone-800">Trust Dividend</h4>
+                                <p class="text-sm text-stone-500">Deep disclosure session at a local WeMeet.</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="block font-mono font-bold text-emerald-600" data-reward="75">+75 SCU</span>
+                            <span class="text-xs text-stone-400 status-text">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Activation: Grand Social Exchange -->
+    <section id="event" class="py-16 bg-stone-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold mb-4 text-social-gold">The Grand Social Exchange</h2>
+            <p class="text-stone-300 max-w-2xl mx-auto mb-12">
+                A multi-city rollout event transforming public squares into neon-lit "Exchange Floors."
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white/5 border border-white/10 p-6 rounded-lg backdrop-blur hover:bg-white/10 transition">
+                    <h3 class="text-xl font-bold text-white mb-2">Milan</h3>
+                    <p class="text-sm text-stone-400 mb-4">Piazza Gae Aulenti</p>
+                    <div class="text-social-gold font-mono text-sm">Status: HIGH VOLATILITY</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 p-6 rounded-lg backdrop-blur hover:bg-white/10 transition">
+                    <h3 class="text-xl font-bold text-white mb-2">Berlin</h3>
+                    <p class="text-sm text-stone-400 mb-4">Alexanderplatz</p>
+                    <div class="text-emerald-400 font-mono text-sm">Status: OPENING SOON</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 p-6 rounded-lg backdrop-blur hover:bg-white/10 transition">
+                    <h3 class="text-xl font-bold text-white mb-2">Bari</h3>
+                    <p class="text-sm text-stone-400 mb-4">Lungomare Nazario Sauro</p>
+                    <div class="text-social-gold font-mono text-sm">Status: HIGH DEMAND</div>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center" id="contact">
+                <button class="bg-weroad-burgundy text-white px-8 py-3 rounded-lg font-bold hover:bg-red-900 transition-all shadow-md">
+                    Download Full Press Kit
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-stone-900 text-stone-500 py-8 text-center text-sm">
+        <p>&copy; 2025 WeRoad. All rights reserved. | The Social Currency Index Campaign</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Place your Gemini API Key here to enable the "Generate a Live Social Wealth Status Report" feature.
+        const apiKey = "AIzaSyBSnrc_onemQUycXuPyEaR7_ZCBqr6jfs0";
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+
+        // --- DATA STRUCTURES ---
+        const tickerItems = [
+            'MILAN SCU: 62.5 ▲ 1.2%',
+            'LONDON SCU: 45.1 ▼ 0.5%',
+            'NAPLES SCU: 85.0 ▲ 2.1%',
+            'BERLIN SCU: 38.8 ▼ 1.8%',
+            'MADRID SCU: 78.3 ▲ 0.9%',
+            'SCU/EURO Rate: 0.89 ▲ 0.01',
+        ];
+
+        const missions = [
+            { id: 'expeditions', title: 'The Expeditions Portfolio', reward: 150, desc: 'Travelled with 5+ strangers in a foreign country.', completed: false, icon: 'fa-plane-departure', color: 'blue' },
+            { id: 'environment', title: 'The Environment Fund', reward: 100, desc: 'Diversified connection: Urban, Nature, & Party events.', completed: false, icon: 'fa-tree', color: 'green' },
+            { id: 'trust', title: 'Trust Dividend', reward: 75, desc: 'Deep disclosure session at a local WeMeet.', completed: false, icon: 'fa-handshake', color: 'purple' },
+        ];
+        
+        const cityData = {
+            labels: ['Naples', 'Madrid', 'Milan', 'London', 'Berlin'],
+            wealth: [85, 78, 62, 45, 38],
+            lag: [2, 3, 6, 12, 16]
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentChartMetric = 'wealth';
+        let userSCU = 0;
+        let chartInstance = null;
+
+        // --- UTILITIES (RETRY LOGIC) ---
+        async function callGeminiApi(payload, maxRetries = 5) {
+            let attempt = 0;
+            while (attempt < maxRetries) {
+                try {
+                    const url = `${GEMINI_API_URL}?key=${apiKey}`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 429) {
+                        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        attempt++;
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`API call failed with status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        const text = candidate.content.parts[0].text;
+                        
+                        let sources = [];
+                        const groundingMetadata = candidate.groundingMetadata;
+                        if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                            sources = groundingMetadata.groundingAttributions
+                                .map(attribution => ({
+                                    uri: attribution.web?.uri,
+                                    title: attribution.web?.title,
+                                }))
+                                .filter(source => source.uri && source.title);
+                        }
+                        
+                        return { text, sources };
+                    }
+                    throw new Error("Invalid response structure from Gemini API.");
+
+                } catch (error) {
+                    if (attempt === maxRetries - 1) {
+                        console.error("Gemini API call failed after max retries:", error);
+                        throw new Error("Failed to connect to the analysis engine.");
+                    }
+                    attempt++;
+                }
+            }
+        }
+
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initTicker();
+            initChart();
+            updateTier(); // Initialize tier display
+        });
+
+        // --- TICKER LOGIC ---
+        function initTicker() {
+            const container = document.getElementById('social-ticker');
+            // Check if container exists and tickerItems is defined and not empty
+            if (!container || !tickerItems || tickerItems.length === 0) return;
+            
+            // Re-creating the content string, using a simple caret up icon for consistency
+            const content = tickerItems.map(item => `<span class="ticker-item"><i class="fa-solid fa-caret-up text-green-500 mr-2"></i>${item}</span>`).join('');
+            
+            // Duplicating content for seamless looping animation
+            container.innerHTML = content + content;
+        }
+
+        // --- CHART LOGIC ---
+        function initChart() {
+            const ctx = document.getElementById('sciChart').getContext('2d');
+            const config = {
+                type: 'bar',
+                data: {
+                    labels: cityData.labels,
+                    datasets: [{
+                        label: 'Social Wealth Score (0-100)',
+                        data: cityData.wealth,
+                        backgroundColor: [
+                            'rgba(6, 95, 70, 0.8)',
+                            'rgba(6, 95, 70, 0.7)',
+                            'rgba(6, 95, 70, 0.6)',
+                            'rgba(6, 95, 70, 0.5)',
+                            'rgba(6, 95, 70, 0.4)',
+                        ],
+                        borderColor: 'rgba(6, 95, 70, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return currentChartMetric === 'wealth' 
+                                        ? `Score: ${context.raw}/100` 
+                                        : `${context.raw} Weeks to Connect`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f3f4f6' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            };
+            
+            chartInstance = new Chart(ctx, config);
+            updateInsightText();
+        }
+
+        function updateChart(metric) {
+            currentChartMetric = metric;
+            const btnWealth = document.getElementById('btn-wealth');
+            const btnLag = document.getElementById('btn-lag');
+            
+            if (metric === 'wealth') {
+                btnWealth.className = "px-4 py-2 rounded-md text-sm font-medium transition-all bg-weroad-burgundy text-white shadow-sm";
+                btnLag.className = "px-4 py-2 rounded-md text-sm font-medium text-stone-500 hover:text-stone-900 transition-all";
+                chartInstance.data.datasets[0].label = 'Social Wealth Score (0-100)';
+                chartInstance.data.datasets[0].data = cityData.wealth;
+                chartInstance.data.datasets[0].backgroundColor = 'rgba(6, 95, 70, 0.8)';
+            } else {
+                btnLag.className = "px-4 py-2 rounded-md text-sm font-medium transition-all bg-weroad-burgundy text-white shadow-sm";
+                btnWealth.className = "px-4 py-2 rounded-md text-sm font-medium text-stone-500 hover:text-stone-900 transition-all";
+                chartInstance.data.datasets[0].label = 'Connection Lag (Weeks)';
+                chartInstance.data.datasets[0].data = cityData.lag;
+                chartInstance.data.datasets[0].backgroundColor = 'rgba(139, 30, 63, 0.8)';
+            }
+            
+            chartInstance.update();
+            updateInsightText();
+        }
+
+        function updateInsightText() {
+            const container = document.getElementById('chart-insight');
+            if (currentChartMetric === 'wealth') {
+                container.innerHTML = `<strong>Market Insight:</strong> Southern European cities like Naples outperform Northern hubs in Social Wealth, driven by spontaneous "Third Place" interactions. Berlin is currently undervalued.`;
+                container.className = "mt-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-stone-700 text-sm";
+            } else {
+                container.innerHTML = `<strong>Risk Alert:</strong> In Berlin, the "Connection Lag" is 8x higher than in Naples. This friction is what WeMeet aims to reduce through structured social transactions.`;
+                container.className = "mt-6 p-4 bg-red-50 border-l-4 border-red-500 text-stone-700 text-sm";
+            }
+        }
+
+        // --- LEDGER INTERACTION ---
+        function completeTransaction(element, missionId) {
+            const missionIndex = missions.findIndex(m => m.id === missionId);
+            if (missionIndex === -1 || missions[missionIndex].completed) return;
+
+            const amount = missions[missionIndex].reward;
+            missions[missionIndex].completed = true;
+
+            userSCU += amount;
+            
+            element.classList.add('bg-emerald-100', 'border-emerald-500', 'opacity-50');
+            const statusText = element.querySelector('.status-text');
+            statusText.textContent = "STAMPED";
+            statusText.classList.remove('text-stone-400');
+            statusText.classList.add('text-emerald-700', 'font-bold');
+            
+            const stamp = document.createElement('div');
+            stamp.innerHTML = '<i class="fa-solid fa-stamp text-4xl text-emerald-800 opacity-50 absolute right-10 top-2 rotate-12"></i>';
+            element.classList.add('relative', 'overflow-hidden');
+            element.appendChild(stamp);
+            
+            element.style.pointerEvents = 'none';
+            
+            animateValue("scu-display", userSCU - amount, userSCU, 1000);
+            updateTier();
+        }
+
+        function updateTier() {
+            const tierName = document.getElementById('tier-name');
+            const tierIcon = document.getElementById('tier-icon');
+            const progressBar = document.getElementById('progress-bar');
+            const nextTierText = document.getElementById('next-tier-text');
+
+            let progress = 0;
+            let nextTierSCU = 200;
+            
+            if (userSCU < 200) {
+                progress = (userSCU / 200) * 33;
+                nextTierSCU = 200;
+                tierName.textContent = "Social Apprentice";
+                tierIcon.className = "fa-solid fa-medal text-stone-500";
+                nextTierText.textContent = `${Math.max(0, nextTierSCU - userSCU)} SCU to Certified Investor`;
+                progressBar.classList.remove('bg-blue-400', 'bg-social-gold');
+                progressBar.classList.add('bg-stone-400');
+            } else if (userSCU < 500) {
+                progress = 33 + ((userSCU - 200) / 300) * 33;
+                nextTierSCU = 500;
+                tierName.textContent = "Certified Investor";
+                tierIcon.className = "fa-solid fa-medal text-blue-400";
+                nextTierText.textContent = `${Math.max(0, nextTierSCU - userSCU)} SCU to Wealth Manager`;
+                progressBar.classList.remove('bg-stone-400', 'bg-social-gold');
+                progressBar.classList.add('bg-blue-400');
+            } else {
+                progress = 66 + ((userSCU - 500) / 500) * 34;
+                if(progress > 100) progress = 100;
+                tierName.textContent = "Wealth Manager";
+                tierIcon.className = "fa-solid fa-crown text-social-gold";
+                nextTierText.textContent = "Max Tier Reached - VIP Access Unlocked";
+                progressBar.classList.remove('bg-stone-400', 'bg-blue-400');
+                progressBar.classList.add('bg-social-gold');
+            }
+
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // --- GEMINI FEATURE 1: REPORT GENERATOR (Grounded) ---
+        async function generateReport() {
+            const cityInput = document.getElementById('city-input');
+            const city = cityInput.value.trim();
+            const resultDiv = document.getElementById('report-result');
+            const resultText = document.getElementById('report-text');
+            const resultSources = document.getElementById('report-sources');
+            const button = document.getElementById('report-button');
+
+            if (!apiKey) {
+                 resultDiv.classList.remove('hidden');
+                 resultText.innerHTML = '<span class="text-red-500">Error: Gemini API Key is missing. Please add your key to the `apiKey` variable in the script to enable live reporting.</span>';
+                 resultSources.innerHTML = '';
+                 return;
+            }
+
+            if (!city) {
+                resultDiv.classList.remove('hidden');
+                resultText.innerHTML = '<span class="text-red-500">Please enter a city name to run the analysis.</span>';
+                resultSources.innerHTML = '';
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Analyzing City<span class="loading-animation"></span>';
+            resultDiv.classList.remove('hidden');
+            resultText.innerHTML = '<p class="text-stone-500 italic">Consulting market data and formulating report...</p>';
+            resultSources.innerHTML = '';
+
+            const systemPrompt = "Act as a data analyst for the WeRoad Social Currency Index (SCI). Your goal is to synthesize a mock 'Social Wealth Status Report' for the input city, focusing on the 25-35 age bracket. The report must be four sentences long and use formal, financial-style language. Include one hypothetical 'Connection Lag' metric (in weeks) and two bullet points summarizing 'Social Strength' or 'Social Risk' based on your findings.";
+            const userQuery = `Find recent, relevant data on social activity, loneliness, or community events in ${city}. Then, formulate the mock Social Wealth Status Report and metrics based on this information.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const { text, sources } = await callGeminiApi(payload);
+                
+                resultText.innerHTML = text.replace(/\n/g, '<br>');
+
+                if (sources.length > 0) {
+                    resultSources.innerHTML = '<strong>Sources:</strong> ' + sources.map((s, i) => 
+                        `<a href="${s.uri}" target="_blank" class="text-weroad-burgundy hover:underline">(${i + 1}) ${s.title}</a>`
+                    ).join(' | ');
+                } else {
+                    resultSources.innerHTML = '<em>Analysis generated without specific grounding sources.</em>';
+                }
+
+            } catch (e) {
+                resultText.innerHTML = `<span class="text-red-500">Error generating report: ${e.message}</span>`;
+                resultSources.innerHTML = '';
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Analyse City';
+            }
+        }
+    </script>
+</body>
+</html>
+
